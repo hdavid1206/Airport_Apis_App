@@ -142,19 +142,30 @@ function calcularDistancia() {
         destino: formData.get('aeropuerto_destino')
     });
 
-    // Realizar petición
+    // Realizar petición AJAX
     fetch('/calculate/', {
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRFToken': csrfToken
-        }
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'  // Importante para Django
+        },
+        credentials: 'same-origin'  // Incluir cookies CSRF
     })
     .then(response => {
         console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        // Verificar que sea JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("La respuesta no es JSON válido");
+        }
+        
         return response.json();
     })
     .then(data => {
@@ -162,13 +173,25 @@ function calcularDistancia() {
         
         if (data.success) {
             mostrarResultados(data);
+            showSuccessMessage('¡Distancia calculada correctamente!');
         } else {
-            mostrarError(data.error);
+            mostrarError(data.error || 'Error desconocido en el cálculo');
         }
     })
     .catch(error => {
         console.error('Error en la petición:', error);
-        mostrarError('Error de conexión con el servidor. Por favor, verifique su conexión a internet e intente nuevamente.');
+        
+        let errorMessage = 'Error de conexión con el servidor.';
+        
+        if (error.message.includes('HTTP error')) {
+            errorMessage = 'Error del servidor. Por favor, intenta nuevamente.';
+        } else if (error.message.includes('JSON')) {
+            errorMessage = 'Error en la respuesta del servidor. Verifica tu conexión.';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+        }
+        
+        mostrarError(errorMessage);
     })
     .finally(() => {
         stopLoading();
@@ -218,7 +241,7 @@ function stopLoading() {
     hideLoading();
     const btn = document.getElementById('calcularBtn');
     btn.disabled = false;
-    btn.textContent = 'Calcular Distancia';
+    btn.textContent = 'CALCULAR DISTANCIA';
     btn.classList.remove('loading');
 }
 
@@ -240,22 +263,32 @@ function hideLoading() {
 function mostrarResultados(data) {
     console.log('Mostrando resultados:', data);
     
-    // Información de origen
-    setElementText('origen-codigo', data.aeropuerto_origen.codigo);
+    // Verificar que tengamos todos los datos necesarios
+    if (!data.aeropuerto_origen || !data.aeropuerto_destino) {
+        mostrarError('Datos incompletos recibidos del servidor');
+        return;
+    }
+    
+    // Información de origen - con validación de datos
+    setElementText('origen-codigo', data.aeropuerto_origen.codigo || data.aeropuerto_origen.iata);
     setElementText('origen-nombre', data.aeropuerto_origen.nombre);
     setElementText('origen-ciudad', data.aeropuerto_origen.ciudad);
     setElementText('origen-pais', data.aeropuerto_origen.pais);
     
-    // Información de destino
-    setElementText('destino-codigo', data.aeropuerto_destino.codigo);
+    // Información de destino - con validación de datos
+    setElementText('destino-codigo', data.aeropuerto_destino.codigo || data.aeropuerto_destino.iata);
     setElementText('destino-nombre', data.aeropuerto_destino.nombre);
     setElementText('destino-ciudad', data.aeropuerto_destino.ciudad);
     setElementText('destino-pais', data.aeropuerto_destino.pais);
     
-    // Distancias con formato
-    setElementText('distancia-km', formatNumber(data.distancia_km));
-    setElementText('distancia-miles', formatNumber(data.distancia_miles));
-    setElementText('distancia-nauticas', formatNumber(data.distancia_millas_nauticas));
+    // Distancias con formato - validar que sean números
+    const km = parseFloat(data.distancia_km) || 0;
+    const miles = parseFloat(data.distancia_miles) || 0;
+    const nauticas = parseFloat(data.distancia_millas_nauticas) || 0;
+    
+    setElementText('distancia-km', formatNumber(km));
+    setElementText('distancia-miles', formatNumber(miles));
+    setElementText('distancia-nauticas', formatNumber(nauticas));
     
     // Mostrar sección de resultados
     showResults();
@@ -271,7 +304,9 @@ function setElementText(id, text) {
 }
 
 function formatNumber(number) {
-    if (number === null || number === undefined) return 'No disponible';
+    if (number === null || number === undefined || isNaN(number)) {
+        return 'No disponible';
+    }
     return Number(number).toLocaleString('es-ES', {
         maximumFractionDigits: 0
     });
@@ -289,8 +324,6 @@ function showResults() {
             });
         }, 100);
     }
-    
-    showSuccessMessage('¡Distancia calculada correctamente!');
 }
 
 function showSuccessMessage(message) {
