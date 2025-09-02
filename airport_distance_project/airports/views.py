@@ -14,7 +14,7 @@ def airport_distance_view(request):
 def calculate_distance(request):
     if request.method == "POST":
         try:
-            # Corregir el error de .strip() - agregar paréntesis
+            # Obtener datos del formulario
             aeropuerto_origen = (
                 request.POST.get("aeropuerto_origen", "").strip().upper()
             )
@@ -42,23 +42,16 @@ def calculate_distance(request):
             if aeropuerto_origen == aeropuerto_destino:
                 return JsonResponse(
                     {
-                        
                         "success": False,
                         "error": "Los aeropuertos de origen y destino deben ser diferentes.",
                     }
                 )
 
-            # Corregir la URL de la API
-            base_url = "https://airportgap.com/api/airports/distance"
-
-            # Usar GET en lugar de POST
-            airports_data = {
-                "from": aeropuerto_origen,
-                "to": aeropuerto_destino
-            }
+            # URL correcta de la API
+            url = f"https://airportgap.com/api/airports/distance?from={aeropuerto_origen}&to={aeropuerto_destino}"
             
-            # Realizar la petición POST
-            response= requests.post(f"{base_url}/distance", json=airports_data, timeout=10)
+            # Realizar la petición GET
+            response = requests.get(url, timeout=10)
 
             if response.status_code == 200:
                 datos = response.json()
@@ -69,18 +62,18 @@ def calculate_distance(request):
                     "aeropuerto_origen": {
                         "nombre": datos["data"]["attributes"]["from_airport"]["name"],
                         "ciudad": datos["data"]["attributes"]["from_airport"]["city"],
+                        "pais": datos["data"]["attributes"]["from_airport"]["country"],
                         "codigo": aeropuerto_origen,
                     },
                     "aeropuerto_destino": {
                         "nombre": datos["data"]["attributes"]["to_airport"]["name"],
                         "ciudad": datos["data"]["attributes"]["to_airport"]["city"],
+                        "pais": datos["data"]["attributes"]["to_airport"]["country"],
                         "codigo": aeropuerto_destino,
                     },
                     "distancia_km": datos["data"]["attributes"]["kilometers"],
                     "distancia_miles": datos["data"]["attributes"]["miles"],
-                    "distancia_millas_nauticas": datos["data"]["attributes"][
-                        "nautical_miles"
-                    ],
+                    "distancia_millas_nauticas": datos["data"]["attributes"]["nautical_miles"],
                 }
 
                 return JsonResponse(result_data)

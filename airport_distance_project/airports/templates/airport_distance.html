@@ -6,102 +6,245 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <title>Calculadora de Distancia - Básico</title>
+    <title>Calculadora de Distancia entre Aeropuertos</title>
 </head>
 <body>
-    <h1>Calculadora de Distancia entre Aeropuertos</h1>
-    
-    <form id="airportForm">
-        {% csrf_token %}
+    <div class="container">
+        <h1>Calculadora de Distancia entre Aeropuertos</h1>
         
-        <div class="form-group">
-            <label for="aeropuerto_origen">Aeropuerto Origen:</label>
-            <input 
-                type="text" 
-                id="aeropuerto_origen" 
-                name="aeropuerto_origen"
-                placeholder="BOG" 
-                maxlength="3" 
-                required
-            >
+        <form id="airportForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="aeropuerto_origen">Aeropuerto de Origen (Código IATA):</label>
+                <input 
+                    type="text" 
+                    id="aeropuerto_origen" 
+                    name="aeropuerto_origen"
+                    placeholder="Ej: BOG" 
+                    maxlength="3"
+                    pattern="[A-Z]{3}"
+                    title="Ingrese código IATA de 3 letras"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="aeropuerto_destino">Aeropuerto de Destino (Código IATA):</label>
+                <input 
+                    type="text" 
+                    id="aeropuerto_destino" 
+                    name="aeropuerto_destino"
+                    placeholder="Ej: MEX" 
+                    maxlength="3"
+                    pattern="[A-Z]{3}"
+                    title="Ingrese código IATA de 3 letras"
+                    required
+                >
+            </div>
+            
+            <button type="submit" id="calcularBtn">Calcular Distancia</button>
+        </form>
+        
+        <!-- Indicador de carga -->
+        <div id="loading" style="display: none;">
+            <div class="loading-spinner">Calculando distancia...</div>
         </div>
         
-        <div class="form-group">
-            <label for="aeropuerto_destino">Aeropuerto Destino:</label>
-            <input 
-                type="text" 
-                id="aeropuerto_destino" 
-                name="aeropuerto_destino"
-                placeholder="MEX" 
-                maxlength="3" 
-                required
-            >
+        <!-- Resultados -->
+        <div id="resultados" style="display: none;">
+            <h2>📊 Resultados del Cálculo</h2>
+            
+            <div class="result-section">
+                <h3>✈️ Información de Aeropuertos</h3>
+                <div class="airport-info">
+                    <div class="airport-card origen">
+                        <h4>🛫 Origen</h4>
+                        <p><strong>Código:</strong> <span id="origen-codigo"></span></p>
+                        <p><strong>Nombre:</strong> <span id="origen-nombre"></span></p>
+                        <p><strong>Ciudad:</strong> <span id="origen-ciudad"></span></p>
+                        <p><strong>País:</strong> <span id="origen-pais"></span></p>
+                    </div>
+                    
+                    <div class="flight-arrow">➜</div>
+                    
+                    <div class="airport-card destino">
+                        <h4>🛬 Destino</h4>
+                        <p><strong>Código:</strong> <span id="destino-codigo"></span></p>
+                        <p><strong>Nombre:</strong> <span id="destino-nombre"></span></p>
+                        <p><strong>Ciudad:</strong> <span id="destino-ciudad"></span></p>
+                        <p><strong>País:</strong> <span id="destino-pais"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h3>📏 Distancias</h3>
+                <div class="distance-grid">
+                    <div class="distance-card">
+                        <div class="distance-value" id="distancia-km"></div>
+                        <div class="distance-unit">Kilómetros</div>
+                    </div>
+                    <div class="distance-card">
+                        <div class="distance-value" id="distancia-miles"></div>
+                        <div class="distance-unit">Millas</div>
+                    </div>
+                    <div class="distance-card">
+                        <div class="distance-value" id="distancia-nauticas"></div>
+                        <div class="distance-unit">Millas Náuticas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="nuevaConsulta()" class="btn-nuevo">🔄 Nueva Consulta</button>
         </div>
         
-        <button type="submit">Calcular Distancia</button>
-    </form>
-    
-    <div id="resultados" style="display: none;">
-        <h2>Resultados:</h2>
-        <p><strong>Origen:</strong> <span id="origen"></span></p>
-        <p><strong>Destino:</strong> <span id="destino"></span></p>
-        <p><strong>Distancia:</strong> <span id="distancia"></span> km</p>
+        <!-- Mensajes de error -->
+        <div id="error" style="display: none;"></div>
     </div>
-    
-    <div id="error" style="display: none; color: red;"></div>
 
     <script>
+        // Variables globales
+        let isCalculating = false;
+
         // Esperar a que el DOM esté completamente cargado
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('airportForm');
+            const inputs = form.querySelectorAll('input[type="text"]');
+            
+            // Convertir automáticamente a mayúsculas
+            inputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+            });
             
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Ocultar resultados y errores previos
-                document.getElementById('resultados').style.display = 'none';
-                document.getElementById('error').style.display = 'none';
+                if (isCalculating) return;
                 
-                // Obtener el token CSRF
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                
-                // Crear FormData con los datos del formulario
-                const formData = new FormData(this);
-                
-                // Realizar la petición AJAX
-                fetch('/calculate/', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Mostrar resultados exitosos
-                        document.getElementById('origen').textContent = 
-                            data.aeropuerto_origen.codigo + ' - ' + data.aeropuerto_origen.nombre;
-                        
-                        document.getElementById('destino').textContent = 
-                            data.aeropuerto_destino.codigo + ' - ' + data.aeropuerto_destino.nombre;
-                        
-                        document.getElementById('distancia').textContent = data.distancia_km;
-                        document.getElementById('resultados').style.display = 'block';
-                        
-                    } else {
-                        // Mostrar error
-                        document.getElementById('error').textContent = data.error;
-                        document.getElementById('error').style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('error').textContent = 'Error de conexión';
-                    document.getElementById('error').style.display = 'block';
-                });
+                calcularDistancia();
             });
         });
+
+        function calcularDistancia() {
+            isCalculating = true;
+            
+            // Ocultar resultados y errores previos
+            document.getElementById('resultados').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            // Deshabilitar botón
+            const btn = document.getElementById('calcularBtn');
+            btn.disabled = true;
+            btn.textContent = 'Calculando...';
+            
+            // Obtener el token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Crear FormData con los datos del formulario
+            const formData = new FormData(document.getElementById('airportForm'));
+            
+            // Realizar la petición AJAX
+            fetch('/calculate/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.success) {
+                    mostrarResultados(data);
+                } else {
+                    mostrarError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                console.error('Error:', error);
+                mostrarError('Error de conexión. Por favor, inténtelo de nuevo.');
+            })
+            .finally(() => {
+                isCalculating = false;
+                btn.disabled = false;
+                btn.textContent = 'Calcular Distancia';
+            });
+        }
+
+        function mostrarResultados(data) {
+            // Información de origen
+            document.getElementById('origen-codigo').textContent = data.aeropuerto_origen.codigo;
+            document.getElementById('origen-nombre').textContent = data.aeropuerto_origen.nombre;
+            document.getElementById('origen-ciudad').textContent = data.aeropuerto_origen.ciudad;
+            document.getElementById('origen-pais').textContent = data.aeropuerto_origen.pais;
+            
+            // Información de destino
+            document.getElementById('destino-codigo').textContent = data.aeropuerto_destino.codigo;
+            document.getElementById('destino-nombre').textContent = data.aeropuerto_destino.nombre;
+            document.getElementById('destino-ciudad').textContent = data.aeropuerto_destino.ciudad;
+            document.getElementById('destino-pais').textContent = data.aeropuerto_destino.pais;
+            
+            // Distancias
+            document.getElementById('distancia-km').textContent = Number(data.distancia_km).toLocaleString('es-ES');
+            document.getElementById('distancia-miles').textContent = Number(data.distancia_miles).toLocaleString('es-ES');
+            document.getElementById('distancia-nauticas').textContent = Number(data.distancia_millas_nauticas).toLocaleString('es-ES');
+            
+            // Mostrar resultados
+            document.getElementById('resultados').style.display = 'block';
+            
+            // Scroll suave hacia los resultados
+            document.getElementById('resultados').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('error').textContent = mensaje;
+            document.getElementById('error').style.display = 'block';
+            
+            // Scroll hacia el error
+            document.getElementById('error').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
+        function nuevaConsulta() {
+            // Limpiar formulario
+            document.getElementById('airportForm').reset();
+            
+            // Ocultar resultados
+            document.getElementById('resultados').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            // Scroll hacia arriba
+            document.querySelector('h1').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            // Enfocar primer input
+            document.getElementById('aeropuerto_origen').focus();
+        }
+
+        // Validación en tiempo real
+        function validarInput(input) {
+            const valor = input.value.toUpperCase();
+            input.value = valor;
+            
+            if (valor.length === 3 && /^[A-Z]{3}$/.test(valor)) {
+                input.style.borderColor = '#28a745';
+            } else {
+                input.style.borderColor = '';
+            }
+        }
     </script>
 </body>
 </html>
