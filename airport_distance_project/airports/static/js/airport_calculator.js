@@ -341,7 +341,7 @@ function mostrarError(mensaje) {
     
     const errorEl = document.getElementById('error');
     if (errorEl) {
-        errorEl.textContent = mensaje;
+        errorEl.innerHTML = mensaje;
         errorEl.style.display = 'block';
         
         setTimeout(() => {
@@ -351,10 +351,10 @@ function mostrarError(mensaje) {
             });
         }, 100);
 
-        // Auto-ocultar después de 8 segundos
+        // Auto-ocultar después de 12 segundos para errores largos
         setTimeout(() => {
             hideError();
-        }, 8000);
+        }, 12000);
     }
 }
 

@@ -59,7 +59,41 @@ def calculate_distance(request):
                 }
             )
 
-        # URL de la API
+        # Primero verificar si los aeropuertos existen individualmente
+        # Esto ayuda a dar mensajes de error más específicos
+        
+        def verificar_aeropuerto(codigo):
+            """Verifica si un aeropuerto existe en la API"""
+            try:
+                url_check = f"https://airportgap.com/api/airports/{codigo}"
+                headers_check = {
+                    'User-Agent': 'AirportDistanceCalculator/1.0',
+                    'Accept': 'application/json',
+                }
+                response_check = requests.get(url_check, headers=headers_check, timeout=10)
+                return response_check.status_code == 200
+            except:
+                return False
+        
+        # Verificar aeropuerto de origen
+        if not verificar_aeropuerto(aeropuerto_origen):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"El código de aeropuerto '{aeropuerto_origen}' no se encontró en la base de datos. Verifica que sea un código IATA válido.",
+                }
+            )
+        
+        # Verificar aeropuerto de destino
+        if not verificar_aeropuerto(aeropuerto_destino):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"El código de aeropuerto '{aeropuerto_destino}' no se encontró en la base de datos. Verifica que sea un código IATA válido.",
+                }
+            )
+
+        # URL de la API para calcular distancia
         url = f"https://airportgap.com/api/airports/distance?from={aeropuerto_origen}&to={aeropuerto_destino}"
         
         print(f"Realizando petición a: {url}")  # Para debug
