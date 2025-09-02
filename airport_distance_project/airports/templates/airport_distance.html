@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>Calculadora de Distancia - Básico</title>
+</head>
+<body>
+    <h1>Calculadora de Distancia entre Aeropuertos</h1>
+    
+    <form id="airportForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="aeropuerto_origen">Aeropuerto Origen:</label>
+            <input 
+                type="text" 
+                id="aeropuerto_origen" 
+                name="aeropuerto_origen"
+                placeholder="BOG" 
+                maxlength="3" 
+                required
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="aeropuerto_destino">Aeropuerto Destino:</label>
+            <input 
+                type="text" 
+                id="aeropuerto_destino" 
+                name="aeropuerto_destino"
+                placeholder="MEX" 
+                maxlength="3" 
+                required
+            >
+        </div>
+        
+        <button type="submit">Calcular Distancia</button>
+    </form>
+    
+    <div id="resultados" style="display: none;">
+        <h2>Resultados:</h2>
+        <p><strong>Origen:</strong> <span id="origen"></span></p>
+        <p><strong>Destino:</strong> <span id="destino"></span></p>
+        <p><strong>Distancia:</strong> <span id="distancia"></span> km</p>
+    </div>
+    
+    <div id="error" style="display: none; color: red;"></div>
+
+    <script>
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('airportForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Ocultar resultados y errores previos
+                document.getElementById('resultados').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                
+                // Obtener el token CSRF
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Crear FormData con los datos del formulario
+                const formData = new FormData(this);
+                
+                // Realizar la petición AJAX
+                fetch('/calculate/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Mostrar resultados exitosos
+                        document.getElementById('origen').textContent = 
+                            data.aeropuerto_origen.codigo + ' - ' + data.aeropuerto_origen.nombre;
+                        
+                        document.getElementById('destino').textContent = 
+                            data.aeropuerto_destino.codigo + ' - ' + data.aeropuerto_destino.nombre;
+                        
+                        document.getElementById('distancia').textContent = data.distancia_km;
+                        document.getElementById('resultados').style.display = 'block';
+                        
+                    } else {
+                        // Mostrar error
+                        document.getElementById('error').textContent = data.error;
+                        document.getElementById('error').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('error').textContent = 'Error de conexión';
+                    document.getElementById('error').style.display = 'block';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

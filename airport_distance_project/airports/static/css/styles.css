@@ -1,0 +1,412 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Efecto de partículas en el fondo */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+    z-index: -1;
+    animation: floating 20s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(1deg); }
+    66% { transform: translateY(10px) rotate(-1deg); }
+}
+
+/* Contenedor principal */
+h1 {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
+    animation: slideInDown 0.8s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Formulario con efecto glassmorphism */
+#airportForm {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: slideInUp 0.8s ease-out 0.2s both;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#airportForm:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 16px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Etiquetas */
+label {
+    display: block;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.01em;
+}
+
+/* Inputs modernos */
+input[type="text"] {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+input[type="text"]:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.1),
+        0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+input[type="text"]:valid {
+    border-color: rgba(72, 187, 120, 0.6);
+}
+
+/* Espaciado entre campos */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+br {
+    display: none;
+}
+
+/* Botón moderno con gradiente */
+button[type="submit"] {
+    width: 100%;
+    padding: 1.2rem 2rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 
+        0 4px 15px rgba(79, 70, 229, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #5b52f0 0%, #8b5cf6 100%);
+    box-shadow: 
+        0 8px 25px rgba(79, 70, 229, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+button[type="submit"]:active {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 15px rgba(79, 70, 229, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Efecto de onda en el botón */
+button[type="submit"]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button[type="submit"]:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Resultados con animación */
+#resultados {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#resultados h2 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#resultados p {
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#resultados p:last-child {
+    border-bottom: none;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fbbf24;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#resultados strong {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+/* Mensajes de error */
+#error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #airportForm {
+        padding: 2rem;
+        border-radius: 20px;
+    }
+    
+    input[type="text"] {
+        padding: 0.9rem 1.2rem;
+        font-size: 1rem;
+    }
+    
+    button[type="submit"] {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    #resultados {
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    #resultados h2 {
+        font-size: 1.3rem;
+    }
+    
+    #resultados p {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+    }
+    
+    #resultados p:last-child {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.7rem;
+    }
+    
+    #airportForm {
+        padding: 1.5rem;
+    }
+    
+    input[type="text"] {
+        padding: 0.8rem 1rem;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Efectos hover para inputs */
+input[type="text"]:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Transiciones suaves para mostrar/ocultar elementos */
+#resultados, #error {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Estilo para elementos focus */
+*:focus {
+    outline: none;
+}
+
+/* Mejora visual para navegadores webkit */
+input[type="text"]::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+input[type="text"]::-moz-placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 1;
+}
+
+/* Estilo adicional para el contenedor principal */
+.container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Efecto de brillo sutil */
+#airportForm::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+#airportForm:hover::before {
+    left: 100%;
+}
