@@ -113,17 +113,25 @@ def calculate_distance(request):
             return JsonResponse(result_data)
 
         elif response.status_code == 422:
+            # Intentar con códigos comunes para test
+            if aeropuerto_origen in ['BOG', 'BAQ'] or aeropuerto_destino in ['BOG', 'BAQ']:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": f"Los aeropuertos {aeropuerto_origen} y {aeropuerto_destino} son códigos válidos, pero no están disponibles en la base de datos de la API. Prueba con códigos como: LAX, JFK, LHR, CDG, MAD, FCO.",
+                    }
+                )
             return JsonResponse(
                 {
                     "success": False,
-                    "error": f"Uno o ambos códigos de aeropuerto no son válidos: {aeropuerto_origen} → {aeropuerto_destino}",
+                    "error": f"Uno o ambos códigos de aeropuerto no son válidos o no están disponibles en la API: {aeropuerto_origen} → {aeropuerto_destino}. Prueba con: LAX, JFK, LHR, CDG, MAD.",
                 }
             )
         elif response.status_code == 404:
             return JsonResponse(
                 {
                     "success": False,
-                    "error": f"Los códigos de aeropuerto {aeropuerto_origen} o {aeropuerto_destino} no fueron encontrados.",
+                    "error": f"Los códigos de aeropuerto {aeropuerto_origen} o {aeropuerto_destino} no fueron encontrados en la base de datos. Prueba con códigos internacionales como: LAX (Los Ángeles), JFK (Nueva York), LHR (Londres), CDG (París), MAD (Madrid).",
                 }
             )
         else:

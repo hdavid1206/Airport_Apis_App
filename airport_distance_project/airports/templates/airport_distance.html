@@ -13,6 +13,15 @@
     <div class="container">
         <h1>Calculadora de Distancia entre Aeropuertos</h1>
         
+        <!-- Ayuda con códigos de ejemplo -->
+        <div id="examples" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; max-width: 550px;">
+            <p style="color: white; font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;"><strong>💡 Códigos IATA de ejemplo:</strong></p>
+            <p style="color: rgba(255,255,255,0.8); font-size: 0.8rem; text-align: center; margin: 0; line-height: 1.4;">
+                <strong>LAX</strong> (Los Ángeles) • <strong>JFK</strong> (Nueva York) • <strong>LHR</strong> (Londres)<br>
+                <strong>CDG</strong> (París) • <strong>MAD</strong> (Madrid) • <strong>FCO</strong> (Roma)
+            </p>
+        </div>
+        
         <form id="airportForm">
             {% csrf_token %}
             
