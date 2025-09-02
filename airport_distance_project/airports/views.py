@@ -42,6 +42,7 @@ def calculate_distance(request):
             if aeropuerto_origen == aeropuerto_destino:
                 return JsonResponse(
                     {
+                        
                         "success": False,
                         "error": "Los aeropuertos de origen y destino deben ser diferentes.",
                     }
