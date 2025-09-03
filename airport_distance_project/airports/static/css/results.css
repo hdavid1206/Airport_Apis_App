@@ -87,12 +87,13 @@
     text-align: center;
 }
 
-/* Información de aeropuertos */
+/* Información de aeropuertos (MODIFICADO) */
 .airport-info {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 2rem;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas más pequeñas */
     margin-bottom: 1rem;
 }
 
@@ -103,6 +104,8 @@
     border-radius: 16px;
     padding: 1.5rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex: 1; /* Permite que las tarjetas crezcan para llenar el espacio */
+    min-width: 280px; /* Evita que las tarjetas se vuelvan demasiado pequeñas */
 }
 
 .airport-card:hover {
@@ -226,14 +229,14 @@
     letter-spacing: 0.05em;
 }
 
-/* Botón nueva consulta */
+/* Botón nueva consulta (MODIFICADO) */
 .btn-nuevo {
     display: block;
     width: 100%;
     max-width: 300px;
     margin: 2rem auto 0;
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     border: none;
     border-radius: 16px;
     color: white;
@@ -244,15 +247,15 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     box-shadow: 
-        0 4px 15px rgba(16, 185, 129, 0.4),
+        0 4px 15px rgba(79, 70, 229, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-nuevo:hover {
     transform: translateY(-3px);
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #5b52f0 0%, #8b5cf6 100%);
     box-shadow: 
-        0 8px 25px rgba(16, 185, 129, 0.5),
+        0 8px 25px rgba(79, 70, 229, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
