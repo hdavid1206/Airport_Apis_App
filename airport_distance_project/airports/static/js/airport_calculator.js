@@ -120,6 +120,20 @@ function checkFormCompleteness() {
     button.style.opacity = allValid ? '1' : '0.7';
 }
 
+function validateForm() {
+    const inputs = document.querySelectorAll('#airportForm input[type="text"]');
+    let isValid = true;
+
+    inputs.forEach(input => {
+        if (!validateInput(input)) {
+            isValid = false;
+        }
+    });
+
+    console.log('Validación de formulario completa:', isValid);
+    return isValid;
+}
+
 function calcularDistancia() {
     console.log('Iniciando cálculo de distancia...');
     
@@ -133,127 +147,69 @@ function calcularDistancia() {
         return;
     }
 
-    // Obtener datos del formulario
     const formData = new FormData(document.getElementById('airportForm'));
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
-    console.log('Datos a enviar:', {
-        origen: formData.get('aeropuerto_origen'),
-        destino: formData.get('aeropuerto_destino')
-    });
+    const csrfToken = getCookie('csrftoken');
 
-    // Realizar petición AJAX
+    console.log('Enviando datos:', Object.fromEntries(formData));
+
     fetch('/calculate/', {
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'  // Importante para Django
+            'X-CSRFToken': csrfToken
         },
-        credentials: 'same-origin'  // Incluir cookies CSRF
+        credentials: 'same-origin'  // Agregado para asegurar cookies/CSRF
     })
     .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Verificar que sea JSON
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("La respuesta no es JSON válido");
-        }
-        
+        console.log('Respuesta recibida:', response.status);
         return response.json();
     })
     .then(data => {
-        console.log('Datos recibidos:', data);
-        
+        console.log('Datos procesados:', data);
+        stopLoading();
+        isCalculating = false;
+
         if (data.success) {
             mostrarResultados(data);
-            showSuccessMessage('¡Distancia calculada correctamente!');
+            hideError();
         } else {
-            mostrarError(data.error || 'Error desconocido en el cálculo');
+            mostrarError(data.error || 'Error desconocido');
         }
     })
     .catch(error => {
-        console.error('Error en la petición:', error);
-        
-        let errorMessage = 'Error de conexión con el servidor.';
-        
-        if (error.message.includes('HTTP error')) {
-            errorMessage = 'Error del servidor. Por favor, intenta nuevamente.';
-        } else if (error.message.includes('JSON')) {
-            errorMessage = 'Error en la respuesta del servidor. Verifica tu conexión.';
-        } else if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
-        }
-        
-        mostrarError(errorMessage);
-    })
-    .finally(() => {
+        console.error('Error en fetch:', error);
         stopLoading();
         isCalculating = false;
+        mostrarError('Error de conexión. Verifica tu internet e intenta nuevamente.');
     });
 }
 
-function validateForm() {
-    const origen = document.getElementById('aeropuerto_origen').value.trim();
-    const destino = document.getElementById('aeropuerto_destino').value.trim();
-
-    if (!origen || !destino) {
-        mostrarError('Debe ingresar ambos códigos de aeropuertos');
-        return false;
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-
-    if (origen.length !== 3 || destino.length !== 3) {
-        mostrarError('Los códigos deben tener exactamente 3 letras');
-        return false;
-    }
-
-    if (!/^[A-Z]{3}$/.test(origen) || !/^[A-Z]{3}$/.test(destino)) {
-        mostrarError('Los códigos solo pueden contener letras');
-        return false;
-    }
-
-    if (origen === destino) {
-        mostrarError('Los aeropuertos de origen y destino deben ser diferentes');
-        return false;
-    }
-
-    return true;
+    console.log('CSRF token obtenido:', cookieValue ? 'Sí' : 'No');
+    return cookieValue;
 }
 
 function startLoading() {
-    hideResults();
-    hideError();
-    showLoading();
-    
-    const btn = document.getElementById('calcularBtn');
-    btn.disabled = true;
-    btn.textContent = 'Calculando...';
-    btn.classList.add('loading');
-}
-
-function stopLoading() {
-    hideLoading();
-    const btn = document.getElementById('calcularBtn');
-    btn.disabled = false;
-    btn.textContent = 'CALCULAR DISTANCIA';
-    btn.classList.remove('loading');
-}
-
-function showLoading() {
     const loading = document.getElementById('loading');
     if (loading) {
         loading.style.display = 'block';
-        loading.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    hideResults();
+    hideError();
 }
 
-function hideLoading() {
+function stopLoading() {
     const loading = document.getElementById('loading');
     if (loading) {
         loading.style.display = 'none';
@@ -261,31 +217,25 @@ function hideLoading() {
 }
 
 function mostrarResultados(data) {
-    console.log('Mostrando resultados:', data);
-    
-    // Verificar que tengamos todos los datos necesarios
-    if (!data.aeropuerto_origen || !data.aeropuerto_destino) {
-        mostrarError('Datos incompletos recibidos del servidor');
-        return;
-    }
-    
-    // Información de origen - con validación de datos
-    setElementText('origen-codigo', data.aeropuerto_origen.codigo || data.aeropuerto_origen.iata);
+    console.log('Mostrando resultados...');
+
+    // Origen
+    setElementText('origen-codigo', data.aeropuerto_origen.codigo);
     setElementText('origen-nombre', data.aeropuerto_origen.nombre);
     setElementText('origen-ciudad', data.aeropuerto_origen.ciudad);
     setElementText('origen-pais', data.aeropuerto_origen.pais);
-    
-    // Información de destino - con validación de datos
-    setElementText('destino-codigo', data.aeropuerto_destino.codigo || data.aeropuerto_destino.iata);
+
+    // Destino
+    setElementText('destino-codigo', data.aeropuerto_destino.codigo);
     setElementText('destino-nombre', data.aeropuerto_destino.nombre);
     setElementText('destino-ciudad', data.aeropuerto_destino.ciudad);
     setElementText('destino-pais', data.aeropuerto_destino.pais);
-    
-    // Distancias con formato - validar que sean números
-    const km = parseFloat(data.distancia_km) || 0;
-    const miles = parseFloat(data.distancia_miles) || 0;
-    const nauticas = parseFloat(data.distancia_millas_nauticas) || 0;
-    
+
+    // Distancias
+    const km = data.distancia_km;
+    const miles = data.distancia_miles;
+    const nauticas = data.distancia_millas_nauticas;
+
     setElementText('distancia-km', formatNumber(km));
     setElementText('distancia-miles', formatNumber(miles));
     setElementText('distancia-nauticas', formatNumber(nauticas));
